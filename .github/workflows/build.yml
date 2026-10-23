@@ -19,5 +19,21 @@ jobs:
           dotnet-version: 10.0.x
       - name: Restore dependencies
         run: dotnet restore
+      - name: Restore local tools
+        run: dotnet tool restore
+      - name: Generate the initial EF migration if not already committed
+        shell: pwsh
+        run: |
+          if (!(Test-Path "Data/Migrations")) {
+            dotnet tool run dotnet-ef migrations add InitialCreate --output-dir Data/Migrations
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
       - name: Build
         run: dotnet build --configuration Release --no-restore
+      - name: Upload EF migration source for review and packaging
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: efcore-migrations
+          path: Data/Migrations/
+          if-no-files-found: warn
