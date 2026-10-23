@@ -1,0 +1,10 @@
+using Microsoft.AspNetCore.Identity; using Microsoft.AspNetCore.Mvc; using Staybnb.Models; using Staybnb.Services; using Staybnb.ViewModels;
+namespace Staybnb.Controllers;
+public class AccountController(UserManager<ApplicationUser> users,SignInManager<ApplicationUser> signIn,ActivityLogger logger):Controller {
+ [HttpGet] public IActionResult Register()=>View(new RegisterViewModel());
+ [HttpPost,ValidateAntiForgeryToken] public async Task<IActionResult> Register(RegisterViewModel vm){if(!ModelState.IsValid)return View(vm); var user=new ApplicationUser{UserName=vm.Email,Email=vm.Email,FullName=vm.FullName}; var result=await users.CreateAsync(user,vm.Password); if(result.Succeeded){await users.AddToRoleAsync(user,"Guest"); await logger.LogAsync(user.Id,"User registered","Authentication"); await signIn.SignInAsync(user,false); return RedirectToAction("Index","Home");} foreach(var e in result.Errors)ModelState.AddModelError("",e.Description); return View(vm);}
+ [HttpGet] public IActionResult Login(string? returnUrl=null){ViewBag.ReturnUrl=returnUrl;return View(new LoginViewModel());}
+ [HttpPost,ValidateAntiForgeryToken] public async Task<IActionResult> Login(LoginViewModel vm,string? returnUrl=null){if(!ModelState.IsValid)return View(vm);var user=await users.FindByEmailAsync(vm.Email);var result=await signIn.PasswordSignInAsync(vm.Email,vm.Password,vm.RememberMe,lockoutOnFailure:true);if(result.Succeeded){await logger.LogAsync(user?.Id,"Successful login","Authentication");if(!string.IsNullOrEmpty(returnUrl)&&Url.IsLocalUrl(returnUrl))return Redirect(returnUrl);return RedirectToAction("Index","Home");}ModelState.AddModelError("","Invalid login attempt.");return View(vm);}
+ [Microsoft.AspNetCore.Authorization.Authorize, HttpPost, ValidateAntiForgeryToken] public async Task<IActionResult> Logout(){var id=users.GetUserId(User);await signIn.SignOutAsync();await logger.LogAsync(id,"User logged out","Authentication");return RedirectToAction("Index","Home");}
+ public IActionResult AccessDenied()=>View();
+}
