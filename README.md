@@ -1,16 +1,21 @@
 # Staybnb — Programming 742
 
-Staybnb is an ASP.NET Core MVC property-rental application using ASP.NET Core Identity, Entity Framework Core, SQL Server LocalDB, Razor views, HTML, CSS and JavaScript. It is developed against the .NET 10 SDK.
+Staybnb is an ASP.NET Core MVC property-rental application using ASP.NET Core Identity, Entity Framework Core, SQL Server LocalDB, Razor views, HTML, CSS and JavaScript. It targets .NET 10.
 
-## Requirements
-- Windows with .NET 10 SDK
-- SQL Server LocalDB instance `MSSQLLocalDB` (confirmed by the developer)
-- Internet access for the initial NuGet package restore
-- Git, if you intend to clone and commit changes locally
+## Prerequisites
+- Windows with the .NET 10 SDK.
+- SQL Server LocalDB instance `MSSQLLocalDB`.
+- Internet access for the first NuGet restore.
 
 ## Local setup
-1. Clone this repository and open a terminal in the repository root.
-2. Configure a development-only SuperAdmin account using user secrets:
+1. Clone this public repository and open PowerShell in the repository root:
+
+   ```powershell
+   git clone https://github.com/mogomotsi4m-art/StayBnB.git
+   cd StayBnB
+   ```
+
+2. Configure a development-only SuperAdmin account using local user secrets. Run `dotnet user-secrets init` once if the project does not yet have a UserSecretsId:
 
    ```powershell
    dotnet user-secrets init
@@ -18,40 +23,51 @@ Staybnb is an ASP.NET Core MVC property-rental application using ASP.NET Core Id
    dotnet user-secrets set "SuperAdmin:Password" "Replace-With-A-Unique-Strong-Password-123!"
    ```
 
-3. Restore dependencies: `dotnet restore`.
-4. Install/update EF CLI if needed: `dotnet tool update --global dotnet-ef`.
-5. Generate the initial migration and create the local database:
+   Use your own strong, unique development password; never commit it or include it in screenshots or reports.
+
+3. Restore tools and dependencies, then create/update the local database using the migration already committed to this repository:
 
    ```powershell
-   dotnet ef migrations add InitialCreate
+   dotnet restore
+   dotnet tool restore
    dotnet ef database update
+   dotnet build --configuration Release
+   dotnet test Staybnb.Tests/Staybnb.Tests.csproj --configuration Release
+   dotnet run
    ```
 
-6. Run `dotnet run` and open the HTTPS URL printed by the application.
+4. Open the HTTPS URL printed by the application.
 
-The application applies existing migrations on startup, but the first migration must be generated before the first run. Review migration SQL before using this project with any database that contains important data. Do not use production credentials in a development database.
+The project includes an EF Core design-time context factory and an initial migration in `Data/Migrations/`. Program startup also applies existing migrations before seeding roles. Review migrations before using this project with a database containing important data. LocalDB is for local development, not production hosting.
 
-## Initial feature scope
-- Registration automatically assigns the Guest role; login/logout use ASP.NET Core Identity.
-- Role seeding creates Guest, Host, Admin and SuperAdmin roles. A SuperAdmin account is created only when a password is configured through user secrets.
-- Guests can browse active approved properties, filter by city and type, submit Host applications with property images, request bookings, review pricing, upload private check-in documents, send messages and manage notifications.
-- Admins can review Host applications, promote approved applicants from Guest to Host, inspect activity logs and view document queue metadata. SuperAdmin-only functionality promotes eligible Guests to Admin.
-- Hosts can edit their own property details, activate/deactivate approved listings, approve/reject booking requests, configure check-in instructions, and verify/download documents for their own bookings.
-- Booking prices are saved as a snapshot using `(PricePerNight × Nights) + CleaningFee + ServiceFee`.
-- Uploaded property images are saved under `wwwroot/uploads/properties`. Identity documents are stored outside `wwwroot` under `App_Data/private-documents`, and download requests check the host/property ownership relationship.
-- The Payment entity records a `NotProcessed` status. No actual payment gateway is integrated.
+## Feature scope
+- ASP.NET Core Identity registration and login; new users receive Guest server-side.
+- Role seeding for Guest, Host, Admin and SuperAdmin. The initial SuperAdmin is created only when the password is provided through user secrets.
+- Guest property discovery filtered by city and type; Host application form with mandatory property images; booking requests and stored price breakdowns; check-in instructions and private document upload; messaging and notifications.
+- Admin Host-application approval/rejection, ActivityLog review, and SuperAdmin-only Guest-to-Admin promotion.
+- Host property editing and activation, booking approval/rejection, check-in configuration, and private document review/download for the Host's own properties.
+- Booking price snapshot: `(PricePerNight × Nights) + CleaningFee + ServiceFee`.
+- Property images stored under `wwwroot/uploads/properties`. Identity documents are stored outside `wwwroot` under `App_Data/private-documents`; download actions enforce the Host/property ownership relationship.
+- A Payment row records `NotProcessed`; there is no payment gateway or claim of real funds transfer.
 
 ## Repository map
-`Controllers/` contains MVC endpoints; `Models/` contains Identity and rental entities; `Data/` contains the EF Core context and role seeder; `Services/` contains booking, file-storage, activity and notification services; `ViewModels/` contains input models; `Views/` contains the Razor UI; `wwwroot/` contains styles and scripts. `docs/` contains the architecture notes, rubric mapping, testing plan and report.
+- `Controllers/`: MVC endpoints and authorization
+- `Models/`: Identity and rental entities
+- `Data/`: EF Core context, role seeder, design-time factory, migrations
+- `Services/`: booking pricing, booking workflows, file storage, notifications and activity logging
+- `ViewModels/`: validated form models
+- `Views/` and `wwwroot/`: Razor UI and responsive styles/scripts
+- `Staybnb.Tests/`: deterministic unit tests for booking price calculations
+- `docs/`: architecture, rubric traceability, test plan and report
 
 ## Testing and verification
-Run `dotnet restore`, `dotnet build`, generate/apply the EF migration, and exercise the scenarios in `docs/TEST_PLAN.md`. The source package was prepared in an environment without the .NET CLI, so no build, migration, or end-to-end test is claimed as passed. The generated migration, screenshots, real test outcomes, and any required fixes must be added after testing on the configured Windows machine. Check `docs/RUBRIC_TRACEABILITY.md` for evidence requirements and known gaps.
+GitHub Actions runs `dotnet restore`, builds in Release mode, executes the booking pricing unit tests, and retains the EF migration as an artifact. The CI build and migration-generation command have passed. This does **not** prove that the migration has been applied to your LocalDB or that all manual workflows have passed. After cloning, run the commands above and execute every scenario in `docs/TEST_PLAN.md`; update outcomes only with genuine results. Capture screenshots from the running application, not mockups.
 
-## Security
-Never commit passwords, user secrets, tokens, real identity documents, local database files or private app data. Uploaded documents and sample user records must not be added to this public repository. Review authorization and state-transition behaviour before submission.
+## Security notes
+Never commit passwords, user secrets, tokens, real identity documents, local database files or private application data. Uploaded documents and sample user records must not be added to this public repository. Property upload checks use filename extensions and limits; production deployment would also need robust file-content inspection and a retention policy. Review route authorization and state-transition behaviour before submission.
 
-## Known gaps before final submission
-This is an initial implementation snapshot rather than a verified final release. The initial feature set does not fully implement wishlist and review user interfaces, a comprehensive Admin document-review workflow, a full gallery/image deletion experience, or automated tests. Booking conflict checking is application-level and needs hardening for simultaneous requests. Verify all route authorization and workflows. Email confirmation/reset, payment processing and real-time messaging are not integrated.
+## Known limitations to address/test
+Wishlist/review user interfaces, a comprehensive Admin document-review workflow, image deletion/reordering, email confirmation/reset, payment processing and real-time messaging are not integrated. Booking conflict validation is application-level and needs concurrency hardening for simultaneous requests. Verify the full check-in required-document logic against the property-specific list. Build success alone is not end-to-end verification.
 
-## Grading/evidence
-Use `docs/RUBRIC_TRACEABILITY.md` to map functionality to the assignment rubric and `docs/TEST_PLAN.md` as an execution log. Record only tests actually run and capture genuine screenshots from the running application. Do not present unrun tests as passed.
+## Assignment evidence
+Use `docs/RUBRIC_TRACEABILITY.md` to map features to the rubric and `docs/TEST_PLAN.md` as an execution log. The public remote has genuine incremental commits; verify the latest history before final submission. Do not record unrun tests as passed.
