@@ -55,3 +55,22 @@ jobs:
           name: efcore-migrations
           path: Data/Migrations/
           if-no-files-found: warn
+
+      - name: Upload clean source snapshot for packaging
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: staybnb-source-snapshot
+          path: |
+            .
+            !**/.git/**
+            !**/bin/**
+            !**/obj/**
+            !**/TestResults/**
+            !**/coverage/**
+            !**/App_Data/private-documents/**
+            !**/wwwroot/uploads/**
+            !**/*.user
+            !**/appsettings.Local.json
+            !Staybnb_Programming742.zip
+          if-no-files-found: error
