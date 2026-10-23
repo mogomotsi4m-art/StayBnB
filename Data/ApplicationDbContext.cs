@@ -1,0 +1,22 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using Staybnb.Models;
+namespace Staybnb.Data;
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options) {
+ public DbSet<HostProperty> Properties=>Set<HostProperty>(); public DbSet<PropertyImage> PropertyImages=>Set<PropertyImage>(); public DbSet<HostApplication> HostApplications=>Set<HostApplication>(); public DbSet<Booking> Bookings=>Set<Booking>(); public DbSet<Payment> Payments=>Set<Payment>(); public DbSet<Review> Reviews=>Set<Review>(); public DbSet<Amenity> Amenities=>Set<Amenity>(); public DbSet<PropertyAmenity> PropertyAmenities=>Set<PropertyAmenity>(); public DbSet<WishlistItem> WishlistItems=>Set<WishlistItem>(); public DbSet<Message> Messages=>Set<Message>(); public DbSet<ActivityLog> ActivityLogs=>Set<ActivityLog>(); public DbSet<Notification> Notifications=>Set<Notification>(); public DbSet<CheckInProcess> CheckInProcesses=>Set<CheckInProcess>(); public DbSet<GuestCheckin> GuestCheckins=>Set<GuestCheckin>(); public DbSet<GuestDocument> GuestDocuments=>Set<GuestDocument>();
+ protected override void OnModelCreating(ModelBuilder b) { base.OnModelCreating(b);
+ b.Entity<HostProperty>().Property(x=>x.PricePerNight).HasPrecision(18,2); b.Entity<HostProperty>().Property(x=>x.CleaningFee).HasPrecision(18,2); b.Entity<HostProperty>().Property(x=>x.ServiceFee).HasPrecision(18,2);
+ b.Entity<Booking>().Property(x=>x.TotalPrice).HasPrecision(18,2); b.Entity<Booking>().Property(x=>x.PricePerNightAtBooking).HasPrecision(18,2); b.Entity<Booking>().Property(x=>x.AccommodationSubtotal).HasPrecision(18,2); b.Entity<Booking>().Property(x=>x.CleaningFeeAtBooking).HasPrecision(18,2); b.Entity<Booking>().Property(x=>x.ServiceFeeAtBooking).HasPrecision(18,2); b.Entity<Payment>().Property(x=>x.Amount).HasPrecision(18,2);
+ b.Entity<HostProperty>().HasOne(x=>x.User).WithMany(x=>x.Properties).HasForeignKey(x=>x.UserId).OnDelete(DeleteBehavior.Restrict);
+ b.Entity<HostApplication>().HasIndex(x=>new{x.ApplicationUserId,x.Status}); b.Entity<HostApplication>().HasOne(x=>x.Property).WithOne(x=>x.HostApplication).HasForeignKey<HostApplication>(x=>x.PropertyId).OnDelete(DeleteBehavior.Cascade); b.Entity<HostApplication>().HasOne(x=>x.Applicant).WithMany().HasForeignKey(x=>x.ApplicationUserId).OnDelete(DeleteBehavior.Restrict);
+ b.Entity<Booking>().HasOne(x=>x.Guest).WithMany().HasForeignKey(x=>x.GuestId).OnDelete(DeleteBehavior.Restrict); b.Entity<Booking>().HasOne(x=>x.Property).WithMany(x=>x.Bookings).HasForeignKey(x=>x.PropertyId).OnDelete(DeleteBehavior.Restrict);
+ b.Entity<Booking>().HasOne(x=>x.Payment).WithOne(x=>x.Booking).HasForeignKey<Payment>(x=>x.BookingId).OnDelete(DeleteBehavior.Cascade); b.Entity<Booking>().HasOne(x=>x.GuestCheckin).WithOne(x=>x.Booking).HasForeignKey<GuestCheckin>(x=>x.BookingId).OnDelete(DeleteBehavior.Cascade);
+ b.Entity<HostProperty>().HasOne(x=>x.CheckInProcess).WithOne(x=>x.Property).HasForeignKey<CheckInProcess>(x=>x.PropertyId).OnDelete(DeleteBehavior.Cascade);
+ b.Entity<PropertyAmenity>().HasKey(x=>new{x.PropertyId,x.AmenityId}); b.Entity<PropertyAmenity>().HasOne(x=>x.Property).WithMany(x=>x.PropertyAmenities).HasForeignKey(x=>x.PropertyId); b.Entity<PropertyAmenity>().HasOne(x=>x.Amenity).WithMany(x=>x.PropertyAmenities).HasForeignKey(x=>x.AmenityId);
+ b.Entity<WishlistItem>().HasIndex(x=>new{x.UserId,x.PropertyId}).IsUnique(); b.Entity<WishlistItem>().HasOne(x=>x.User).WithMany().HasForeignKey(x=>x.UserId).OnDelete(DeleteBehavior.Cascade); b.Entity<WishlistItem>().HasOne(x=>x.Property).WithMany(x=>x.WishlistItems).HasForeignKey(x=>x.PropertyId).OnDelete(DeleteBehavior.Cascade);
+ b.Entity<Message>().HasOne(x=>x.Sender).WithMany().HasForeignKey(x=>x.SenderId).OnDelete(DeleteBehavior.Restrict); b.Entity<Message>().HasOne(x=>x.Receiver).WithMany().HasForeignKey(x=>x.ReceiverId).OnDelete(DeleteBehavior.Restrict);
+ b.Entity<Review>().HasOne(x=>x.Reviewer).WithMany().HasForeignKey(x=>x.ReviewerId).OnDelete(DeleteBehavior.Restrict);
+ b.Entity<ActivityLog>().HasOne(x=>x.User).WithMany().HasForeignKey(x=>x.UserId).OnDelete(DeleteBehavior.SetNull); b.Entity<Notification>().HasOne(x=>x.User).WithMany().HasForeignKey(x=>x.UserId).OnDelete(DeleteBehavior.Cascade);
+ b.Entity<PropertyImage>().HasOne(x=>x.Property).WithMany(x=>x.Images).HasForeignKey(x=>x.PropertyId).OnDelete(DeleteBehavior.Cascade);
+ }
+}
