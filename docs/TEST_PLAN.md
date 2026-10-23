@@ -4,9 +4,9 @@ This document separates CI checks from local integration and end-to-end testing.
 
 | ID | Test | Expected result | Actual result | Status |
 |---|---|---|---|---|
-| BUILD-01 | GitHub Actions restore and Release build | Dependencies restore and source compiles | Passed on Windows/.NET 10 in [run 39930209770](https://github.com/mogomotsi4m-art/StayBnB/actions/runs/39930209770) | Passed in CI |
+| BUILD-01 | GitHub Actions restore and Release build | Dependencies restore and source compiles | Passed on Windows/.NET 10 in [run 39930646174](https://github.com/mogomotsi4m-art/StayBnB/actions/runs/39930646174) | Passed in CI |
 | MIG-01 | Generate EF Core InitialCreate migration | Migration source and model snapshot are generated | Generated in CI and committed under `Data/Migrations/` | Passed in CI |
-| PRICE-01 | Booking pricing unit tests | Correct nights, subtotal, one-time fees and total | Run via `dotnet test Staybnb.Tests/Staybnb.Tests.csproj`; check latest CI test job | Pending CI verification |
+| PRICE-01 | Booking pricing unit tests | Correct nights, subtotal, one-time fees and total; invalid inputs rejected | CI output: 5 passed, 0 failed, 0 skipped in [run 39930646174](https://github.com/mogomotsi4m-art/StayBnB/actions/runs/39930646174) | Passed in CI |
 | AUTH-01 | Register a new user | Account is created with Guest role only | Not run manually | Not run |
 | AUTH-02 | Register duplicate email | Registration rejected with validation | Not run | Not run |
 | AUTH-03 | Guest requests Admin/Host endpoint directly | Access denied | Not run | Not run |
