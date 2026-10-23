@@ -24,9 +24,8 @@ try {
   dotnet user-secrets set "SuperAdmin:Password" $password
   if ($LASTEXITCODE -ne 0) { throw "Could not save SuperAdmin password." }
 } finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr); $password = $null; $secure.Dispose() }
-Write-Host "4/5 Creating/applying the initial EF Core migration..." -ForegroundColor Cyan
-if (!(Test-Path ".\Migrations")) { dotnet ef migrations add InitialCreate }
-if ($LASTEXITCODE -ne 0) { throw "Migration generation failed. Read the preceding error before continuing." }
+Write-Host "4/5 Applying the committed EF Core migration..." -ForegroundColor Cyan
+if (!(Test-Path ".\Data\Migrations\*_InitialCreate.cs")) { throw "The committed InitialCreate migration was not found under Data\Migrations." }
 dotnet ef database update
 if ($LASTEXITCODE -ne 0) { throw "Database update failed. Check SQL Server LocalDB and the connection string." }
 Write-Host "5/5 Setup complete. Start Staybnb with: dotnet run" -ForegroundColor Green
