@@ -1,0 +1,13 @@
+bin/
+obj/
+.vs/
+.vscode/
+*.user
+*.suo
+*.db
+*.mdf
+*.ldf
+appsettings.Local.json
+App_Data/private-documents/
+wwwroot/uploads/
+**/secrets.json
