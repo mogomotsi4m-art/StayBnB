@@ -1,0 +1,29 @@
+# .NET build output
+**/bin/
+**/obj/
+.vs/
+*.user
+*.suo
+*.cache
+
+# Local secrets/configuration
+secrets.json
+appsettings.Local.json
+.env
+.env.*
+
+# Local databases and private user uploads
+*.mdf
+*.ldf
+App_Data/private-documents/**
+!App_Data/private-documents/.gitkeep
+wwwroot/uploads/**
+!wwwroot/uploads/.gitkeep
+
+# Test output
+TestResults/
+coverage/
+
+# IDEs
+.idea/
+.vscode/
