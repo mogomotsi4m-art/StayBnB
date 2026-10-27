@@ -1,0 +1,2 @@
+@model IEnumerable<HostProperty>
+@{ViewData["Title"]="Check-in setup";}<p class="eyebrow">GUEST ARRIVAL</p><h1>Check-in instructions</h1><div class="stack">@foreach(var p in Model){<article class="list-card"><div class="grow"><h3>@p.Title</h3><p class="muted">@(p.CheckInProcess?.Title??"Not configured yet")</p></div><a class="button secondary" asp-action="ConfigureCheckIn" asp-route-propertyId="@p.Id">@(p.CheckInProcess==null?"Configure":"Edit instructions")</a></article>}</div>
